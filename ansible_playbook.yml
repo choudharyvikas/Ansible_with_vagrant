@@ -1,0 +1,72 @@
+---
+- hosts: all
+  sudo: true
+  tasks:
+	- name: Add an example user
+	user:
+
+	name: "testuser"
+
+	shell: /bin/bash
+
+	state: present
+
+	- name: set timezone to Asia/Kolkata
+	  timezone:
+	    name: Asia/Kolkata
+
+    - name: Install python for Ansible
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      changed_when: False
+
+    - name: Install base packages
+  	apt: name={{ item }} state=installed
+  	with_items:
+	    - locales
+	    - build-essential
+	    - acl
+	    - ntp
+	    - htop
+	    - git
+	    - supervisor
+	    - python-pip
+	    - python3-pip
+	    - nginx
+  	tags:
+    	    - packages
+    - name: example copying file with owner and permissions
+      copy:
+	    src: file.txt
+	    dest: /home/testuser/file.txt
+	    remote_src: yes
+	    owner: testuser
+	    group: testuser
+	    mode: 0644
+
+    - name: install supervisord
+      apt: name=supervisor state=present
+    - name: install unzip
+      apt: name=unzip state=present
+    - name: install tmux
+      apt: name=tmux state=present
+    - name: install nginx
+      apt: name=nginx state=present
+
+    - name: Creates directory
+  	file: path=/usr/local/bin/consul state=directory
+    - name: Creates directory
+  	file: path=/usr/local/bin/consul-ui state=directory
+
+    - name: Unarchive a file that needs to be downloaded (added in 2.0) consul package
+  	unarchive:
+	    src: https://releases.hashicorp.com/consul/0.8.0/consul_0.8.0_linux_amd64.zip
+	    dest: /usr/local/bin/consul
+	    remote_src: yes
+
+    - name: Unarchive a file that needs to be downloaded (added in 2.0) consul-ui package
+  	unarchive:
+	    src: https://releases.hashicorp.com/consul/0.8.0/consul_0.8.0_web_ui.zip
+	    dest: /usr/local/bin/consul-ui
+	    remote_src: yes
+	    
+
